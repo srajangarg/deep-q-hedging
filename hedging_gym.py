@@ -5,15 +5,15 @@ from gym import error, spaces, utils
 class HedgingEnv(gym.Env):
     def __init__(self, asset_price_model, option_price_model, max_steps=100,
                  option_contract_size=100, initial_holding_fraction=0.5,
-                 trading_cost_parameter=0.01, trading_cost_gradient=0.01):
+                 trading_cost_parameter=0.1, trading_cost_gradient=0.01):
 
         self.asset_price_model  = asset_price_model
         self.option_price_model = option_price_model
         self.dt                 = option_price_model.dt
         self.T                  = option_price_model.T
 
-        assert(asset_price_model.dt == option_price_model.dt, "dt mismatch")
-        assert(self.dt * max_steps < self.T, "total steps of dt exceed T")
+        assert asset_price_model.dt == option_price_model.dt, "dt mismatch"
+        assert self.dt * max_steps < self.T, "total steps of dt exceed T"
 
         # environment variables
         self.IHF = initial_holding_fraction
@@ -36,7 +36,7 @@ class HedgingEnv(gym.Env):
 
     def _compute_pnl(self, delta_h, h, old_asset_price, new_asset_price,
                                        old_option_price, new_option_price):
-        # pnl from imprefect hedging
+        # pnl from imperfect hedging
         asset_pnl   = (-h/self.OCS) * (new_asset_price - old_asset_price)
         option_pnl  = new_option_price - old_option_price
         hedge_pnl   = asset_pnl + option_pnl
@@ -45,13 +45,14 @@ class HedgingEnv(gym.Env):
         lots_traded = abs(delta_h)
         trading_pnl = -self.TCP * self.dt * (lots_traded + self.TCG * lots_traded**2)
 
-        return hedge_pnl, trading_pnl
+        # return hedge_pnl, trading_pnl
+        return hedge_pnl, 0.0
 
     def _state(self):
         return np.array([self.h, self.t, self.asset_price, self.option_price, self.delta], dtype=float)
 
     def step(self, new_h):
-        assert(type(new_h) == int, "new_h must be an integer")
+        assert type(new_h) == int, "new_h must be an integer"
 
         # need these variables for reward computation
         old_h             = self.h
@@ -94,6 +95,9 @@ class HedgingEnv(gym.Env):
         self.t            = self.T
 
         return self._state()
+
+    def option_delta(self):
+        return self.delta
 
     def state_size(self):
         return len(self._state())
