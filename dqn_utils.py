@@ -25,7 +25,7 @@ def create_dqn(num_hidden, hidden_dim, discount, epsilon_decay, learning_rate, e
 	# TODO add LR scheduler?
 	return DQN(qnet, qnet_t, torch.optim.Adam, torch.nn.MSELoss(reduction='sum'),
 	           discount=discount, epsilon_decay=epsilon_decay, learning_rate=learning_rate,
-	           lr_scheduler=torch.optim.lr_scheduler.StepLR, lr_scheduler_kwargs=[{"step_size": 500*128, "gamma" : 0.5}])
+	           lr_scheduler=torch.optim.lr_scheduler.StepLR, lr_scheduler_kwargs=[{"step_size": 500*100, "gamma" : 0.5}])
 
 def predict_while_testing(dqn, state):
 	out = dqn.act_discrete({"state": torch.tensor(state, dtype=torch.float32).unsqueeze(0)})

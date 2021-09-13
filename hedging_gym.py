@@ -43,16 +43,17 @@ class HedgingEnv(gym.Env):
 
         # pnl from trading costs
         lots_traded = abs(delta_h)
-        trading_pnl = -self.TCP * self.dt * (lots_traded + self.TCG * lots_traded**2)
+        trading_pnl = -self.TCP * (lots_traded + self.TCG * lots_traded**2)
 
-        # return hedge_pnl, trading_pnl
-        return hedge_pnl, 0.0
+        return hedge_pnl, trading_pnl
+        # return hedge_pnl, 0.0
 
     def _state(self):
         return np.array([self.h, self.t, self.asset_price, self.option_price, self.delta], dtype=float)
 
     def step(self, new_h):
         assert type(new_h) == int, "new_h must be an integer"
+        assert new_h >= 0 and new_h <= self.OCS, "new_h out of bounds"
 
         # need these variables for reward computation
         old_h             = self.h
